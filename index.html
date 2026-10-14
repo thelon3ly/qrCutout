@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#121a22" />
+  <meta name="description" content="Create a QR code from text or a link, and remove photo backgrounds on your device." />
+  <link rel="icon" type="image/svg+xml" href="/qrCutout/icons/icon.svg" />
+  <link rel="manifest" href="/qrCutout/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/qrCutout/icons/icon-192.png" />
+  <title>QR & Cutout — create and clean up</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="QR & Cutout home"><span class="brand-mark" aria-hidden="true"><span>⌗</span></span><span>QR <i>&</i> Cutout</span></a>
+      <div class="header-actions"><span class="privacy-pill"><span aria-hidden="true">●</span> Made on your device</span><button id="install-btn" class="install-btn" type="button">Install app</button></div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">TWO LITTLE TOOLS. ONE CLEAN WORKSPACE.</p>
+        <h1>Make it shareable.<br /><em>Make it stand out.</em></h1>
+        <p>Create a QR code from your content or remove the background from a photo. Save the result straight to your device.</p>
+      </section>
+
+      <div class="tool-tabs" role="tablist" aria-label="Tools">
+        <button id="tab-qr" class="tool-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="panel-qr"><span class="tab-symbol" aria-hidden="true">▦</span> QR code <span class="tab-number">01</span></button>
+        <button id="tab-cutout" class="tool-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-cutout"><span class="tab-symbol" aria-hidden="true">◩</span> Remove background <span class="tab-number">02</span></button>
+      </div>
+
+      <section id="panel-qr" class="tool-panel" role="tabpanel" aria-labelledby="tab-qr">
+        <div class="panel-heading"><div><p class="section-kicker">TOOL 01</p><h2>Turn anything into a scan.</h2><p>Paste a link, message, contact detail, or any other text.</p></div><span class="format-tag">PNG + SVG</span></div>
+        <div class="workspace-grid">
+          <div class="controls-card">
+            <label class="field-label" for="qr-content">Your content</label>
+            <textarea id="qr-content" placeholder="Paste a URL or type the text you want people to scan..." rows="6" maxlength="2500"></textarea>
+            <div class="field-footer"><span>Whatever you enter is encoded exactly as written.</span><span id="qr-count">0 / 2500</span></div>
+            <div class="field-divider"></div>
+            <div class="option-grid">
+              <label class="option-field">Code color<input id="qr-dark" type="color" value="#18242b" aria-label="QR code color" /></label>
+              <label class="option-field">Background<input id="qr-light" type="color" value="#ffffff" aria-label="QR background color" /></label>
+              <label class="option-field wide">Image size<select id="qr-size"><option value="512">512 × 512 pixels</option><option value="1024">1024 × 1024 pixels</option></select></label>
+            </div>
+            <button id="qr-generate" class="primary-btn" type="button">Generate QR code <span aria-hidden="true">↗</span></button>
+            <p id="qr-error" class="error-message" role="alert" hidden></p>
+          </div>
+          <div class="output-card">
+            <div class="output-top"><span>PREVIEW</span><span id="qr-ready">WAITING FOR CONTENT</span></div>
+            <div id="qr-stage" class="qr-stage"><div id="qr-placeholder" class="qr-placeholder" aria-hidden="true">▦</div><canvas id="qr-canvas" width="512" height="512" aria-label="Generated QR code" hidden></canvas></div>
+            <div class="output-bottom"><p id="qr-tip">Your QR code will appear here.</p><div class="download-actions"><button id="qr-png" class="secondary-btn" type="button" disabled>Save PNG</button><button id="qr-svg" class="secondary-btn" type="button" disabled>Save SVG</button></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-cutout" class="tool-panel" role="tabpanel" aria-labelledby="tab-cutout" hidden>
+        <div class="panel-heading"><div><p class="section-kicker">TOOL 02</p><h2>Keep the subject. Lose the backdrop.</h2><p>Choose a photo and get a transparent PNG ready to use anywhere.</p></div><span class="format-tag">TRANSPARENT PNG</span></div>
+        <div class="workspace-grid">
+          <div class="controls-card">
+            <label id="dropzone" class="dropzone" for="image-file"><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" /><span class="upload-icon" aria-hidden="true">↥</span><strong>Drop an image here</strong><span>or tap to browse your files</span><small>PNG, JPG or WebP · up to 25 MB</small></label>
+            <div id="source-details" class="source-details" hidden><img id="source-thumbnail" alt="Selected image thumbnail" /><div><strong id="source-name"></strong><span id="source-size"></span></div><button id="clear-image" type="button" aria-label="Remove selected image">×</button></div>
+            <button id="remove-btn" class="primary-btn" type="button" disabled>Remove background <span aria-hidden="true">✦</span></button>
+            <div id="processing" class="processing" role="status" aria-live="polite" hidden><div class="processing-top"><span id="processing-label">Loading the model…</span><strong id="processing-percent"></strong></div><div class="progress-track"><div id="processing-fill"></div></div><p>The first run downloads the AI model. Keep this app open while it works.</p></div>
+            <p id="cutout-error" class="error-message" role="alert" hidden></p>
+            <p class="local-note"><span aria-hidden="true">◇</span> Your photo stays on this device. Processing happens in your browser.</p>
+          </div>
+          <div class="output-card">
+            <div class="output-top"><span>RESULT</span><span id="cutout-ready">NO IMAGE YET</span></div>
+            <div id="cutout-stage" class="cutout-stage"><div id="cutout-placeholder" class="cutout-placeholder"><span aria-hidden="true">◩</span><p>Your transparent image will appear here.</p></div><img id="cutout-image" alt="Photo with background removed" hidden /></div>
+            <div class="output-bottom"><p id="cutout-tip">Choose a photo to get started.</p><div class="download-actions"><button id="cutout-download" class="secondary-btn" type="button" disabled>Save transparent PNG</button></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="how-it-works" aria-label="About this app"><span>BUILT FOR YOUR FLOW</span><p>One app. Two quick jobs. Install it from your browser menu on Android or Windows and open it whenever you need it.</p></section>
+    </main>
+    <footer><span>QR & Cutout</span><span>Created on your device · Source code on <a href="https://github.com/thelon3ly/qrCutout">GitHub</a></span></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
