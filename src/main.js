@@ -1,15 +1,11 @@
 import QRCode from 'qrcode';
+import { initCutout } from './cutout.js';
 import './style.css';
 
 const $ = (selector) => document.querySelector(selector);
 const qrContent = $('#qr-content');
 const qrCanvas = $('#qr-canvas');
-const imageInput = $('#image-file');
 let qrValue = '';
-let imageFile = null;
-let sourceUrl = null;
-let cutoutUrl = null;
-let busy = false;
 let installPrompt = null;
 
 function setTool(tool) {
@@ -54,7 +50,7 @@ function qrOptions() {
     width: Number($('#qr-size').value),
     margin: 4,
     errorCorrectionLevel: 'M',
-    color: { dark: $('#qr-dark').value, light: $('#qr-light').value },
+    color: { dark: $('#qr-dark').value, light: $('#qr-transparent').checked ? '#00000000' : $('#qr-light').value },
   };
 }
 
@@ -81,7 +77,8 @@ qrContent.addEventListener('input', () => {
   $('#qr-count').textContent = `${qrContent.value.length} / 2500`;
   clearQrPreview();
 });
-['#qr-dark', '#qr-light', '#qr-size'].forEach((id) => $(id).addEventListener('input', clearQrPreview));
+['#qr-dark', '#qr-light', '#qr-size', '#qr-transparent'].forEach((id) => $(id).addEventListener('input', clearQrPreview));
+$('#qr-transparent').addEventListener('change', () => { $('#qr-light').disabled = $('#qr-transparent').checked; });
 
 $('#qr-generate').addEventListener('click', async () => {
   const content = qrContent.value.trim();
@@ -91,10 +88,15 @@ $('#qr-generate').addEventListener('click', async () => {
     qrContent.focus();
     return;
   }
+  if (!$('#qr-size').checkValidity() || !Number.isInteger(Number($('#qr-size').value))) {
+    setError('#qr-error', 'Enter a whole-number size from 128 to 4096 pixels.');
+    $('#qr-size').focus();
+    return;
+  }
   const options = qrOptions();
   const dark = luminance(options.color.dark);
-  const light = luminance(options.color.light);
-  if ((Math.max(dark, light) + .05) / (Math.min(dark, light) + .05) < 3) {
+  const light = $('#qr-transparent').checked ? null : luminance(options.color.light);
+  if (light !== null && (Math.max(dark, light) + .05) / (Math.min(dark, light) + .05) < 3) {
     setError('#qr-error', 'Choose colors with more contrast so phones can scan the code.');
     return;
   }
@@ -104,9 +106,10 @@ $('#qr-generate').addEventListener('click', async () => {
     await QRCode.toCanvas(qrCanvas, content, options);
     qrValue = content;
     qrCanvas.hidden = false;
+    $('#qr-stage').classList.toggle('is-transparent', $('#qr-transparent').checked);
     $('#qr-placeholder').hidden = true;
     $('#qr-ready').textContent = 'READY TO SAVE';
-    $('#qr-tip').textContent = 'Scan it with a phone camera to check the result.';
+    $('#qr-tip').textContent = $('#qr-transparent').checked ? 'Transparent background: place it on a light surface and scan with a phone to check it.' : 'Scan it with a phone camera to check the result.';
     $('#qr-png').disabled = false;
     $('#qr-svg').disabled = false;
   } catch (error) {
@@ -134,120 +137,7 @@ $('#qr-svg').addEventListener('click', async () => {
   }
 });
 
-function formatBytes(bytes) {
-  return bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
-}
-
-function clearImage() {
-  if (busy) return;
-  imageFile = null;
-  imageInput.value = '';
-  if (sourceUrl) URL.revokeObjectURL(sourceUrl);
-  if (cutoutUrl) URL.revokeObjectURL(cutoutUrl);
-  sourceUrl = null;
-  cutoutUrl = null;
-  $('#source-details').hidden = true;
-  $('#source-thumbnail').removeAttribute('src');
-  $('#cutout-image').removeAttribute('src');
-  $('#cutout-image').hidden = true;
-  $('#cutout-placeholder').hidden = false;
-  $('#cutout-ready').textContent = 'NO IMAGE YET';
-  $('#cutout-tip').textContent = 'Choose a photo to get started.';
-  $('#cutout-download').disabled = true;
-  $('#remove-btn').disabled = true;
-  setError('#cutout-error');
-}
-
-function chooseImage(file) {
-  if (busy || !file) return;
-  clearImage();
-  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-    setError('#cutout-error', 'Choose a PNG, JPG, or WebP image.');
-    return;
-  }
-  if (file.size > 25 * 1024 * 1024) {
-    setError('#cutout-error', 'Choose an image smaller than 25 MB.');
-    return;
-  }
-  imageFile = file;
-  sourceUrl = URL.createObjectURL(file);
-  $('#source-thumbnail').src = sourceUrl;
-  $('#source-name').textContent = file.name;
-  $('#source-size').textContent = formatBytes(file.size);
-  $('#source-details').hidden = false;
-  $('#cutout-ready').textContent = 'READY TO PROCESS';
-  $('#cutout-tip').textContent = 'Press Remove background to start.';
-  $('#remove-btn').disabled = false;
-}
-
-imageInput.addEventListener('change', () => chooseImage(imageInput.files?.[0]));
-$('#clear-image').addEventListener('click', clearImage);
-const dropzone = $('#dropzone');
-['dragenter', 'dragover'].forEach((type) => dropzone.addEventListener(type, (event) => {
-  event.preventDefault();
-  if (!busy) dropzone.classList.add('is-dragging');
-}));
-['dragleave', 'drop'].forEach((type) => dropzone.addEventListener(type, (event) => {
-  event.preventDefault();
-  dropzone.classList.remove('is-dragging');
-}));
-dropzone.addEventListener('drop', (event) => chooseImage(event.dataTransfer?.files?.[0]));
-
-$('#remove-btn').addEventListener('click', async () => {
-  if (!imageFile || busy) return;
-  busy = true;
-  const originalFile = imageFile;
-  $('#remove-btn').disabled = true;
-  imageInput.disabled = true;
-  $('#clear-image').disabled = true;
-  $('#cutout-download').disabled = true;
-  $('#processing').hidden = false;
-  $('#processing-label').textContent = 'Loading the AI model…';
-  $('#processing-percent').textContent = '';
-  $('#processing-fill').style.width = '5%';
-  $('#cutout-ready').textContent = 'WORKING…';
-  setError('#cutout-error');
-  try {
-    const { removeBackground } = await import('@imgly/background-removal');
-    const blob = await removeBackground(originalFile, {
-      model: 'small',
-      output: { format: 'image/png' },
-      progress: (_key, current, total) => {
-        const percentage = total > 0 ? Math.round(current / total * 100) : 0;
-        $('#processing-label').textContent = 'Downloading the AI model…';
-        $('#processing-percent').textContent = `${percentage}%`;
-        $('#processing-fill').style.width = `${Math.max(5, percentage)}%`;
-      },
-    });
-    if (cutoutUrl) URL.revokeObjectURL(cutoutUrl);
-    cutoutUrl = URL.createObjectURL(blob);
-    $('#cutout-image').src = cutoutUrl;
-    $('#cutout-image').hidden = false;
-    $('#cutout-placeholder').hidden = true;
-    $('#cutout-ready').textContent = 'READY TO SAVE';
-    $('#cutout-tip').textContent = 'Transparent PNG ready to download.';
-    $('#cutout-download').disabled = false;
-  } catch (error) {
-    $('#cutout-ready').textContent = 'COULD NOT PROCESS';
-    setError('#cutout-error', `Background removal failed. Check your connection and try a smaller photo. ${error?.message || ''}`);
-  } finally {
-    busy = false;
-    imageInput.disabled = false;
-    $('#clear-image').disabled = false;
-    $('#remove-btn').disabled = false;
-    $('#processing').hidden = true;
-  }
-});
-
-$('#cutout-download').addEventListener('click', () => {
-  if (!cutoutUrl || !imageFile) return;
-  const link = document.createElement('a');
-  link.href = cutoutUrl;
-  link.download = `${imageFile.name.replace(/\.[^.]+$/, '').replace(/[\\/:*?"<>|\x00-\x1F]/g, '_')}-transparent.png`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-});
+initCutout({ downloadBlob, setError });
 
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();

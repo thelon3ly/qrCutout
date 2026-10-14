@@ -2,10 +2,10 @@
 
 An installable web app for Android and Windows with two tools:
 
-- Generate a QR code from text or a URL, then save it as PNG or SVG.
-- Remove an image background on the device, preview the result, then save a transparent PNG.
+- Generate a QR code from text or a URL with a custom square size, code color, and solid or transparent background; save it as PNG or SVG.
+- Select up to eight images at once, remove their backgrounds on the device, then save an individual transparent PNG or a ZIP containing all completed results.
 
-The app works in a modern browser. The background removal tool downloads its AI model on first use, so an internet connection is needed for that first processing run. Images are processed in the browser and are not uploaded to this app's server. Large photos may take longer or fail on devices with limited memory.
+The app works in a modern browser. The background removal tool downloads its AI model on first use, so an internet connection is needed for that first processing run. Images are processed one at a time in the browser and are not uploaded to this app's server. Large photos or batches may take longer or fail on devices with limited memory. Transparent QR backgrounds need a contrasting surface to scan reliably.
 
 ## Use
 
