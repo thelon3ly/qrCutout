@@ -9,8 +9,8 @@
   <link rel="manifest" href="/qrCutout/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/qrCutout/icons/icon-192.png" />
   <title>QR & Cutout — create and clean up</title>
-  <script type="module" crossorigin src="/qrCutout/assets/index-DKq7WybX.js"></script>
-  <link rel="stylesheet" crossorigin href="/qrCutout/assets/index-DyuZ-I1J.css">
+  <script type="module" crossorigin src="/qrCutout/assets/index-DWr-ySUA.js"></script>
+  <link rel="stylesheet" crossorigin href="/qrCutout/assets/index-BZxI2WDX.css">
 </head>
 <body>
   <div class="app-shell">
@@ -41,8 +41,9 @@
             <div class="field-divider"></div>
             <div class="option-grid">
               <label class="option-field">Code color<input id="qr-dark" type="color" value="#18242b" aria-label="QR code color" /></label>
-              <label class="option-field">Background<input id="qr-light" type="color" value="#ffffff" aria-label="QR background color" /></label>
-              <label class="option-field wide">Image size<select id="qr-size"><option value="512">512 × 512 pixels</option><option value="1024">1024 × 1024 pixels</option></select></label>
+              <label class="option-field">Background color<input id="qr-light" type="color" value="#ffffff" aria-label="QR background color" /></label>
+              <label class="option-field wide checkbox-field"><input id="qr-transparent" type="checkbox" /> Transparent background</label>
+              <label class="option-field wide">Image size (square, in pixels)<input id="qr-size" type="number" min="128" max="4096" step="1" value="512" inputmode="numeric" required aria-describedby="qr-size-help" /><small id="qr-size-help">Enter one number, such as 300, for a 300 × 300 QR code.</small></label>
             </div>
             <button id="qr-generate" class="primary-btn" type="button">Generate QR code <span aria-hidden="true">↗</span></button>
             <p id="qr-error" class="error-message" role="alert" hidden></p>
@@ -56,12 +57,13 @@
       </section>
 
       <section id="panel-cutout" class="tool-panel" role="tabpanel" aria-labelledby="tab-cutout" hidden>
-        <div class="panel-heading"><div><p class="section-kicker">TOOL 02</p><h2>Keep the subject. Lose the backdrop.</h2><p>Choose a photo and get a transparent PNG ready to use anywhere.</p></div><span class="format-tag">TRANSPARENT PNG</span></div>
+        <div class="panel-heading"><div><p class="section-kicker">TOOL 02</p><h2>Keep the subject. Lose the backdrop.</h2><p>Choose several photos and save each transparent PNG or a ZIP of all results.</p></div><span class="format-tag">TRANSPARENT PNG</span></div>
         <div class="workspace-grid">
           <div class="controls-card">
-            <label id="dropzone" class="dropzone" for="image-file"><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" /><span class="upload-icon" aria-hidden="true">↥</span><strong>Drop an image here</strong><span>or tap to browse your files</span><small>PNG, JPG or WebP · up to 25 MB</small></label>
-            <div id="source-details" class="source-details" hidden><img id="source-thumbnail" alt="Selected image thumbnail" /><div><strong id="source-name"></strong><span id="source-size"></span></div><button id="clear-image" type="button" aria-label="Remove selected image">×</button></div>
-            <button id="remove-btn" class="primary-btn" type="button" disabled>Remove background <span aria-hidden="true">✦</span></button>
+            <label id="dropzone" class="dropzone" for="image-file"><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" multiple /><span class="upload-icon" aria-hidden="true">↥</span><strong>Drop images here</strong><span>or tap to browse your files</span><small>Up to 8 PNG, JPG or WebP images · 25 MB each</small></label>
+            <div id="source-details" class="source-details" hidden><div><strong id="source-name"></strong><span id="source-size"></span></div><button id="clear-image" type="button" aria-label="Clear selected images">×</button></div>
+            <div id="image-list" class="image-list" aria-label="Selected images" hidden></div>
+            <button id="remove-btn" class="primary-btn" type="button" disabled>Remove backgrounds <span aria-hidden="true">✦</span></button>
             <div id="processing" class="processing" role="status" aria-live="polite" hidden><div class="processing-top"><span id="processing-label">Loading the model…</span><strong id="processing-percent"></strong></div><div class="progress-track"><div id="processing-fill"></div></div><p>The first run downloads the AI model. Keep this app open while it works.</p></div>
             <p id="cutout-error" class="error-message" role="alert" hidden></p>
             <p class="local-note"><span aria-hidden="true">◇</span> Your photo stays on this device. Processing happens in your browser.</p>
@@ -69,7 +71,7 @@
           <div class="output-card">
             <div class="output-top"><span>RESULT</span><span id="cutout-ready">NO IMAGE YET</span></div>
             <div id="cutout-stage" class="cutout-stage"><div id="cutout-placeholder" class="cutout-placeholder"><span aria-hidden="true">◩</span><p>Your transparent image will appear here.</p></div><img id="cutout-image" alt="Photo with background removed" hidden /></div>
-            <div class="output-bottom"><p id="cutout-tip">Choose a photo to get started.</p><div class="download-actions"><button id="cutout-download" class="secondary-btn" type="button" disabled>Save transparent PNG</button></div></div>
+            <div class="output-bottom"><p id="cutout-tip">Choose photos to get started.</p><div class="download-actions"><button id="cutout-download" class="secondary-btn" type="button" disabled>Save selected PNG</button><button id="cutout-download-all" class="secondary-btn" type="button" disabled>Save all as ZIP</button></div></div>
           </div>
         </div>
       </section>
