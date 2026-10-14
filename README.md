@@ -20,7 +20,7 @@ npm ci
 npm run dev
 ```
 
-Build the static site with `npm run build`. GitHub Actions publishes `dist/` to GitHub Pages when `main` is updated. Enable **GitHub Pages → Build and deployment → GitHub Actions** in the repository settings if needed.
+Build the static site with `npm run build`. Publish it with `npm run deploy`, which builds and pushes `dist/` to the `gh-pages` branch. Configure **GitHub Pages → Build and deployment → Deploy from a branch → gh-pages / (root)** in the repository settings.
 
 ## License and credits
 
