@@ -104,6 +104,10 @@ $('#qr-generate').addEventListener('click', async () => {
   button.disabled = true;
   try {
     await QRCode.toCanvas(qrCanvas, content, options);
+    // The renderer fixes the canvas's display size to its export size.
+    // Let the stylesheet scale the preview without changing the PNG pixels.
+    qrCanvas.style.removeProperty('width');
+    qrCanvas.style.removeProperty('height');
     qrValue = content;
     qrCanvas.hidden = false;
     $('#qr-stage').classList.toggle('is-transparent', $('#qr-transparent').checked);
